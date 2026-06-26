@@ -202,7 +202,7 @@ export default function HomePage() {
 
         {/* Forecast Section */}
         {weather && (
-          <section className="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
+          <section id="recommendations" className="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
             <HourlyForecast data={weather.hourly} />
             <DailyForecast data={weather.daily} />
 
@@ -231,6 +231,8 @@ export default function HomePage() {
           </section>
         )}
       </main>
+
+      <section id="chat" className="h-12" aria-hidden="true" />
 
       <Footer />
 
