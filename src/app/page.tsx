@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { useAppStore } from "@/shared/lib/store";
-import { useWeather } from "@/features/weather/hooks/useWeather";
+import { useWeather, useWeatherByCoords } from "@/features/weather/hooks/useWeather";
 import { useGeolocation } from "@/features/location/hooks/useGeolocation";
 import { useFavoriteCities, usePrefetchFavorites } from "@/features/weather/hooks/useForecast";
 import { useWeatherBackground } from "@/features/weather/hooks/useWeatherBackground";
@@ -40,10 +40,20 @@ export default function HomePage() {
   const { selectedCity, setSelectedCity, comparisonCities, removeComparisonCity } = useAppStore();
   const { favorites, addFavorite, removeFavorite } = useFavoriteCities();
   usePrefetchFavorites();
+
   const { latitude, longitude, error: geoError, loading: geoLoading, requestLocation } = useGeolocation();
   const [showComparison, setShowComparison] = useState(false);
 
-  const { data: weather, isLoading, error, refetch } = useWeather(selectedCity);
+  const cityWeather = useWeather(selectedCity);
+  const coordsWeather = useWeatherByCoords(latitude, longitude);
+
+  const weather = latitude !== null && longitude !== null ? coordsWeather.data : cityWeather.data;
+  const isLoading = latitude !== null && longitude !== null ? coordsWeather.isLoading : cityWeather.isLoading;
+  const error = latitude !== null && longitude !== null ? coordsWeather.error : cityWeather.error;
+  const activeRefetch = latitude !== null && longitude !== null
+    ? () => coordsWeather.refetch()
+    : () => cityWeather.refetch();
+
   const { gradient } = useWeatherBackground(
     weather?.current.main || "Clear",
     weather?.current.icon || "01d"
@@ -177,7 +187,7 @@ export default function HomePage() {
               )}
 
               {selectedCity && error && (
-                <WeatherErrorFallback error={error} reset={() => refetch()} />
+                <WeatherErrorFallback error={error} reset={activeRefetch} />
               )}
 
               {weather && (
